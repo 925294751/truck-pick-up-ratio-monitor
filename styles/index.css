@@ -1,0 +1,66 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Microsoft YaHei", "SimSun", "PingFang SC", Arial, sans-serif;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding: 12px;
+  box-sizing: border-box;
+  gap: 12px;
+}
+
+/* table */
+.table {
+  font-size: 14px;
+  border-collapse: collapse;
+  background: #fff;
+  overflow: hidden;
+}
+
+.table th,
+.table td {
+  border: 1px solid #bdbdbd;
+  padding: 4px 8px;
+  text-align: center;
+  min-width: 60px;
+}
+
+.table th {
+  background: #e2e2e2;
+  color: #333;
+  font-weight: 600;
+  font-size: 16px;
+  letter-spacing: 1px;
+}
+
+.description {
+  font-size: 13px;
+  color: #666;
+  font-weight: normal;
+}
+
+.cell:empty::after {
+  content: '-'
+}
+
+.warning-cell {
+  background: #f4cccc !important;
+}
+
+
+/* echart */
+.echarts-container {
+  flex: 1 1 auto;
+  min-height: 0;
+  background: #fff;
+}
+
+h4,
+h6 {
+  margin: 0;
+  padding: 0;
+}
