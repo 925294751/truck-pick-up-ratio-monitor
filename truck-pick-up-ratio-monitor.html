@@ -293,6 +293,10 @@
   ]
 </script>
 <script type="text/javascript">
+  /**
+   * 把接口里的百分比字符串(如 "12.5%")转成数字 12.5
+   * 遇到 null / undefined / 空串 / "-" / NaN 一律返回 null,方便上层做空值判断
+   */
   function parsePercentValue(value) {
     if (value === null || value === undefined || value === '' || value === '-') {
       return null
@@ -301,6 +305,11 @@
     return Number.isNaN(parsed) ? null : parsed
   }
 
+  /**
+   * 根据 series 数据算出 y 轴的 min / max / interval
+   * 最小值 >= 10% 时取 数据最小值 - 10 留出顶部呼吸空间,否则回落到 0%,搭配 100% 切成 5 个刻度
+   * 入参 data.series 需要先经过 formatEchartData 填充
+   */
   function getChartBounds(data) {
     const values = data.series
       .flatMap((item) => item.data)
@@ -310,9 +319,9 @@
       return { min: 0, max: 100, interval: 25 }
     }
 
-    // 备注：当最小值 >= 10% 时回落到 0%，否则保留真实最小值，并与 100% 组成 5 个刻度
+    // 备注：最小值 >= 10% 时取 数据最小值 - 10(给最高点 label 留缓冲),否则回落到 0%,与 100% 组成 5 个刻度
     const minValue = Math.min(...values)
-    const axisMin = minValue >= 10 ? 0 : minValue
+    const axisMin = minValue >= 10 ? minValue - 10 : 0
 
     return {
       min: axisMin,
@@ -321,6 +330,10 @@
     }
   }
 
+  /**
+   * 把 y 轴刻度值格式化成百分比文案
+   * 整数显示成 "100%",带 1 位小数的保留小数位(如 "12.5%"),避免 "12.0%" 这种噪音
+   */
   function formatAxisPercent(value) {
     const roundedValue = Math.round(value * 10) / 10
     return Number.isInteger(roundedValue)
@@ -328,6 +341,11 @@
       : `${roundedValue.toFixed(1)}%`
   }
 
+  /**
+   * 把 dataObj 的原始结构(按 truck 嵌套)转成表格可消费的二维数组
+   * 同时把列头(item.column)和行数据(item.formatedData)挂回 item 上,供 renderTable 直接使用
+   * 第一列固定是 truckName,后面列按 columnKey 顺序对齐,缺失值填空串
+   */
   function formatTableData(item) {
     const { data, columnKey, valueKey, listKey } = item
     const column = data[0][listKey].map((value) => value[columnKey])
@@ -347,6 +365,12 @@
     return result
   }
 
+  /**
+   * 根据 item.formatedData 生成 <table> HTML 并挂到对应容器
+   * 不达标的格子(item.condition 返回 true)会加 warning-cell 红色背景
+   * 空格子用 "-" 占位(由 .cell:empty::after CSS 规则统一处理)
+   * 第一列加 title-column 灰色背景,加粗字体,作为行标识
+   */
   function renderTable(item) {
     const container = document.getElementById(item.id)
     let html = `
@@ -465,7 +489,8 @@
         lineStyle: {
           color: '#86b93b',
           type: 'dashed',
-          width: 1,
+          // 备注：基线虚线宽度，2px 比 1px 在浅灰分组背景上更清晰
+          width: 2,
         },
         label: {
           show: false,
@@ -739,6 +764,11 @@
     }
     instance.setOption(option)
   }
+  /**
+   * 入口函数:遍历 renderList 把配置渲染成真实 DOM
+   * 每个根节点是 <section>,下面挂 section-title + 多个子节点(table 或 echart)
+   * 子节点挂载完后再调用 format / render 完成数据准备和图表渲染
+   */
   function init() {
     const app = document.getElementById('echartsDemo')
     renderList.forEach(root => {
