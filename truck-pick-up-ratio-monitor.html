@@ -1,0 +1,478 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+  <title>LTL发货/上网时效监控</title>
+  <!-- <script src="echarts.min.js"></script> -->
+  <script src="https://cdn.jsdelivr.net/npm/echarts@6.1.0/dist/echarts.min.js"></script>
+</head>
+<style>
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+  .container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding: 12px;
+    box-sizing: border-box;
+    gap: 12px;
+  }
+
+  /* table */
+  .table {
+    font-size: 14px;
+    border-collapse: collapse;
+    background: #fff;
+    overflow: hidden;
+  }
+
+  .table th,
+  .table td {
+    border: 1px solid #bdbdbd;
+    padding: 4px 8px;
+    text-align: center;
+    min-width: 60px;
+  }
+
+  .table th {
+    background: #e2e2e2;
+    color: #333;
+    font-weight: 600;
+    font-size: 16px;
+    letter-spacing: 1px;
+  }
+
+  .description {
+    font-size: 13px;
+    color: #666;
+    font-weight: normal;
+  }
+
+  .cell:empty::after {
+    content: '-'
+  }
+
+  .warning-cell {
+    background: #f4cccc !important;
+  }
+
+
+  /* echart */
+  .echarts-container {
+    flex: 1 1 auto;
+    min-height: 0;
+    background: #fff;
+  }
+
+  h4,
+  h6 {
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: "Microsoft YaHei", "SimSun", "PingFang SC", Arial, sans-serif;
+  }
+</style>
+
+<body>
+<div id="echartsDemo"></div>
+</body>
+<script type="text/javascript">
+  /**
+   * 数据声明
+   */
+  // const dataObj = {statisticalResults}
+  const dataObj = { "areaStatisticsResults": [{ "truckName": "CEVA", "statisticsResult": [{ "area": "CA", "pickedUpRatio": "0.0%", "outboundRatio": "7.7%" }] }, { "truckName": "Estes", "statisticsResult": [{ "area": "CA", "pickedUpRatio": "0.0%", "outboundRatio": "0.0%" }] }, { "truckName": "GIGA", "statisticsResult": [{ "area": "CA", "pickedUpRatio": "0.0%", "outboundRatio": "66.7%" }] }, { "truckName": "Metropolitan Warehouse", "statisticsResult": [{ "area": "CA", "pickedUpRatio": "0.0%", "outboundRatio": "7.7%" }] }], "stateAchievementRate": 96, "truckAchievementRate": 96, "truckResults": [{ "stateResultDetails": [{ "timeRange": "12.20-12.26", "pickedUpRatio": "98.9%", "outboundRatio": "97.5%" }, { "timeRange": "12.27-1.2", "pickedUpRatio": "27.3%", "outboundRatio": "45.5%" }, { "timeRange": "1.3-1.9", "pickedUpRatio": "28.6%", "outboundRatio": "100.0%" }, { "timeRange": "2.21-2.27", "pickedUpRatio": "0.0%", "outboundRatio": "11.8%" }, { "timeRange": "3.21-3.27", "pickedUpRatio": "0.0%", "outboundRatio": "20.0%" }, { "timeRange": "3.28-4.3", "pickedUpRatio": "0.0%", "outboundRatio": "51.2%" }, { "timeRange": "4.4-4.10", "pickedUpRatio": "0.0%", "outboundRatio": "19.2%" }, { "timeRange": "5.30-6.5", "pickedUpRatio": "0.0%", "outboundRatio": "27.3%" }], "truckName": "Overall" }, { "stateResultDetails": [{ "timeRange": "12.20-12.26", "pickedUpRatio": "99.0%", "outboundRatio": "98.1%" }, { "timeRange": "12.27-1.2", "pickedUpRatio": "20.0%", "outboundRatio": "40.0%" }, { "timeRange": "1.3-1.9", "pickedUpRatio": "33.3%", "outboundRatio": "100.0%" }, { "timeRange": "2.21-2.27", "pickedUpRatio": "0.0%", "outboundRatio": "12.5%" }, { "timeRange": "3.21-3.27", "pickedUpRatio": "0.0%", "outboundRatio": "25.0%" }, { "timeRange": "3.28-4.3", "pickedUpRatio": "0.0%", "outboundRatio": "52.8%" }, { "timeRange": "4.4-4.10", "pickedUpRatio": "0.0%", "outboundRatio": "21.7%" }, { "timeRange": "5.30-6.5", "pickedUpRatio": "0.0%", "outboundRatio": "7.7%" }], "truckName": "CEVA" }, { "stateResultDetails": [{ "timeRange": "12.20-12.26", "pickedUpRatio": "99.5%", "outboundRatio": "96.0%" }, { "timeRange": "12.27-1.2", "pickedUpRatio": "100.0%", "outboundRatio": "100.0%" }, { "timeRange": "1.3-1.9", "pickedUpRatio": "0.0%", "outboundRatio": "100.0%" }, { "timeRange": "2.21-2.27", "pickedUpRatio": "0.0%", "outboundRatio": "0.0%" }, { "timeRange": "3.21-3.27", "pickedUpRatio": "-", "outboundRatio": "-" }, { "timeRange": "3.28-4.3", "pickedUpRatio": "-", "outboundRatio": "-" }, { "timeRange": "4.4-4.10", "pickedUpRatio": "-", "outboundRatio": "-" }, { "timeRange": "5.30-6.5", "pickedUpRatio": "0.0%", "outboundRatio": "0.0%" }], "truckName": "Estes" }, { "stateResultDetails": [{ "timeRange": "12.20-12.26", "pickedUpRatio": "90.9%", "outboundRatio": "95.5%" }, { "timeRange": "12.27-1.2", "pickedUpRatio": "-", "outboundRatio": "-" }, { "timeRange": "1.3-1.9", "pickedUpRatio": "-", "outboundRatio": "-" }, { "timeRange": "2.21-2.27", "pickedUpRatio": "-", "outboundRatio": "-" }, { "timeRange": "3.21-3.27", "pickedUpRatio": "0.0%", "outboundRatio": "0.0%" }, { "timeRange": "3.28-4.3", "pickedUpRatio": "0.0%", "outboundRatio": "100.0%" }, { "timeRange": "4.4-4.10", "pickedUpRatio": "0.0%", "outboundRatio": "0.0%" }, { "timeRange": "5.30-6.5", "pickedUpRatio": "0.0%", "outboundRatio": "66.7%" }], "truckName": "GIGA" }, { "stateResultDetails": [{ "timeRange": "12.20-12.26", "pickedUpRatio": "-", "outboundRatio": "-" }, { "timeRange": "12.27-1.2", "pickedUpRatio": "-", "outboundRatio": "-" }, { "timeRange": "1.3-1.9", "pickedUpRatio": "-", "outboundRatio": "-" }, { "timeRange": "2.21-2.27", "pickedUpRatio": "-", "outboundRatio": "-" }, { "timeRange": "3.21-3.27", "pickedUpRatio": "-", "outboundRatio": "-" }, { "timeRange": "3.28-4.3", "pickedUpRatio": "0.0%", "outboundRatio": "33.3%" }, { "timeRange": "4.4-4.10", "pickedUpRatio": "-", "outboundRatio": "-" }, { "timeRange": "5.30-6.5", "pickedUpRatio": "0.0%", "outboundRatio": "7.7%" }], "truckName": "Metropolitan Warehouse" }], "allState": ["CA"], "allTruck": ["Overall", "CEVA", "Estes", "GIGA", "Metropolitan Warehouse"], "timeRange": "5.30~6.5", "minPickedUpRatio": 0, "minOutboundRatio": 0, "startTimeRange": "12.20-12.26" }
+
+
+  const echartElements = [];
+
+  const renderList = [
+    {
+      title: '（一）三个工作日内发货达成率',
+      id: 'container1',
+      class: 'container',
+      children: [
+        {
+          type: 'table',
+          title: '各区域3个工作日内发货达成率',
+          tip: '订单BP的时间周期：美西时间 '+ dataObj.timeRange +'，已剔除状态为Backorder和Cancelled的订单',
+          description: '',
+          id: 'table1-container',
+          class: 'table-1',
+          data: dataObj.areaStatisticsResults,
+          columnKey: 'area',
+          valueKey: 'outboundRatio',
+          listKey: 'statisticsResult',
+          column: [],
+          formatedData: [],
+          condition: (data) => {
+            return parseFloat(data) < dataObj.stateAchievementRate
+          },
+          format(data) {
+            return formatTableData(data)
+          },
+          render(data) {
+            renderTable(data)
+          }
+        },
+        {
+          type: 'table',
+          title: '美国整体3个工作日内发货达成率',
+          description: '最新BP时间→确认发货时间',
+          id: 'table2-container',
+          class: 'table',
+          data: dataObj.truckResults,
+          columnKey: 'timeRange',
+          valueKey: 'outboundRatio',
+          listKey: 'stateResultDetails',
+          column: [],
+          formatedData: [],
+          condition: (data) => {
+            return parseFloat(data) < dataObj.truckAchievementRate
+          },
+          format(data) {
+            return formatTableData(data)
+          },
+          render(data) {
+            renderTable(data)
+          }
+        },
+        {
+          type: 'echart',
+          title: '',
+          id: 'echarts1',
+          class: 'echarts-container',
+          data: dataObj.truckResults,
+          valueKey: 'outboundRatio',
+          xAxis: [],
+          min: dataObj.minOutboundRatio,
+          max: 101,
+          average: dataObj.truckAchievementRate,
+          series: [],
+          format(data) {
+            formatEchartData(data)
+          },
+          render(data) {
+            loadEchart(data)
+          }
+        }
+      ]
+    },
+    {
+      title: '（二）四个工作日内上网达成率',
+      id: 'container2',
+      class: 'container',
+      children: [
+        {
+          type: 'table',
+          title: '各区域4个工作日内上网达成率',
+          tip: '订单BP的时间周期：美西时间 '+ dataObj.timeRange +'，已剔除状态为Backorder和Cancelled的订单',
+          description: '',
+          id: 'table3-container',
+          class: 'table-1',
+          data: dataObj.areaStatisticsResults,
+          columnKey: 'area',
+          valueKey: 'pickedUpRatio',
+          listKey: 'statisticsResult',
+          column: [],
+          formatedData: [],
+          condition: (data) => {
+            return parseFloat(data) < dataObj.stateAchievementRate
+          },
+          format(data) {
+            return formatTableData(data)
+          },
+          render(data) {
+            renderTable(data)
+          }
+        },
+        {
+          type: 'table',
+          title: '美国整体4个工作日内上网达成率',
+          description: '最新BP时间→上网时间',
+          id: 'table4-container',
+          class: 'table',
+          data: dataObj.truckResults,
+          columnKey: 'timeRange',
+          valueKey: 'pickedUpRatio',
+          listKey: 'stateResultDetails',
+          column: [],
+          formatedData: [],
+          condition: (data) => {
+            return parseFloat(data) < dataObj.truckAchievementRate
+          },
+          format(data) {
+            return formatTableData(data)
+          },
+          render(data) {
+            renderTable(data)
+          }
+        },
+        {
+          type: 'echart',
+          title: '',
+          id: 'echarts2',
+          class: 'echarts-container',
+          data: dataObj.truckResults,
+          valueKey: 'pickedUpRatio',
+          xAxis: [],
+          min: dataObj.minPickedUpRatio,
+          max: 101,
+          average: dataObj.truckAchievementRate,
+          series: [],
+          format(data) {
+            formatEchartData(data)
+          },
+          render(data) {
+            loadEchart(data)
+          }
+        }
+      ]
+    }
+  ]
+</script>
+<script type="text/javascript">
+  // 格式化表格数据
+  function formatTableData(item) {
+    const { data, columnKey, valueKey, listKey } = item;
+    // 格式化column
+    const column = data[0][listKey].map(v => v[columnKey])
+    item.column = column
+    // 格式化rowData
+    const result = []
+    data.forEach(v => {
+      const rowData = column.map(col => {
+        const found = v[listKey].find(i => i[columnKey] === col)
+        return found ? found[valueKey] : ''
+      })
+      rowData.unshift(v.truckName)
+      result.push(rowData)
+    })
+    item.formatedData = result
+  }
+  // 表格渲染
+  function renderTable(item) {
+    const container = document.getElementById(item.id);
+    let html = `
+      <table id="${item.id}" class="table ${item.class}">
+        <thead>
+          <tr>
+            <th>${item.title}${item.description ? `<br><span class="description">${item.description}</span>` : ''}</th>
+            ${item.column.map(h => `<th>${h}</th>`).join('')}
+          </tr>
+        </thead>
+        <tbody>
+    `;
+    item.formatedData.forEach(row => {
+      html += '<tr>';
+      row.forEach((data, idx) => {
+        const condition = item.condition(data);
+        html += `<td class="cell ${condition ? 'warning-cell' : ''} ${idx === 0 ? 'title-column' : ''}">${data ? data : '-'}</td>`;
+      });
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    const tableDom = document.createElement('div');
+    tableDom.innerHTML = html;
+    container.appendChild(tableDom);
+  }
+</script>
+<script type="text/javascript">
+  /**
+   * ECharts 渲染
+   */
+  function formatEchartData(that) {
+    console.log(that.data, 'data')
+    const xAxis = [] // x轴数据
+    const trucks = [] // 卡车名称
+    const series = [] // 卡车数据
+    that.data.forEach((item, itemIndex) => {
+      trucks.push(item.truckName)
+      const seriesData = {
+        type: 'line',
+        smooth: true,
+        connectNulls: true,
+        data: Array.from({ length: item.stateResultDetails.length * itemIndex}, () => null), // 初始化数据为null
+      }
+      series.push(seriesData)
+      item.stateResultDetails.forEach((detail, detailIndex) => {
+        xAxis.push(detail.timeRange)
+        seriesData.data.push(detail[that.valueKey] ? parseFloat(detail[that.valueKey]) : null) // 添加实际数据
+      })
+    })
+    // 处理series数据start
+    const markLineData = {
+      label: {
+        show: true,
+        position: 'top',
+        offset: [0, -15], // 微调数值位置
+        formatter: '{c}%', // 格式化为百分比
+        color: '#000',
+      },
+      markLine: {
+        lineStyle: { width: 2 }, // 标线大小
+        symbol: 'none', // 去掉线最后面的箭头,
+        data: [
+          {
+            name: '水平线1',
+            yAxis: that.average, // Y 值为给定值的标记线，用户自定义水平标线的值
+            lineStyle: { color: 'green' },
+            symbolRotate: 1, // 起点标记的旋转角度
+            symbolSize: [25, 25], // 起点标记的大小
+          },
+        ],
+      },
+    }
+    Object.assign(series[0], markLineData) // 将标线数据添加到第一个系列
+    const trucksData = {
+      type: 'custom',
+      // @ts-expect-error
+      renderItem(params, api) {
+        let valX = api.value(0)
+        let pointA = api.coord([valX, 0])
+        // @ts-expect-error
+        let pointB = api.coord([valX - 1, 0])
+
+        return {
+          type: 'text',
+          style: {
+            text: api.value(2),
+            x: (pointA[0] + pointB[0]) / 2,
+            y: 750, // 距上方距离,按需调整
+            fill: '#333',
+            fontSize: 14,
+            textAlign: 'center',
+          },
+        }
+      },
+      data: trucks.map((truck, index) => {
+        return [index * 8 + 4, 0, truck] // 每个卡车名称在x轴上的位置
+      }),
+    }
+    series.push(trucksData)
+    // 处理series数据end
+    that.xAxis = xAxis // 设置x轴数据
+    that.series = series // 设置系列数据
+  }
+  function loadEchart(data) {
+    console.log(data.id, 'id')
+    const echartRef = document.getElementById(data.id)
+    const instance = echarts.init(echartRef, null, {
+      renderer: 'svg',
+      ssr: true
+    })
+    echartElements.push(instance)
+    const { title, xAxis, min, max, average, series } = data
+    console.log(series)
+    const option = {
+      title: {
+        text: title, // 标题
+        left: '40%',
+      },
+      color: ['#3881D7', '#578DCD', '#8EB4E4', '#7AC1E4', '#86C9BE', '#B2D3AD', '#8798CD', '#8977D7', '#AE7EC0'],
+      grid: {
+        left: 50,
+        right: '4%',
+        bottom: 150,
+      },
+      yAxis: {
+        type: 'value',
+        interval: 4,
+        min, // y最小值
+        max, // y最大值
+        splitLine: {
+          show: false,
+        },
+
+        axisLabel: {
+          formatter: '{value}%', // 格式化为百分比
+        },
+      },
+      xAxis: [
+        {
+          type: 'category',
+          data: xAxis, // X 轴数据
+          axisLabel: {
+            rotate: 90, // 旋转 X 轴标签 90 度
+            interval: 0, // 每个标签都显示
+            margin: 10, // 调整标签和轴之间的距离
+          },
+          splitLine: {
+            show: true,
+          },
+          splitArea: {
+            show: true,
+            interval: (index, value) => {
+              return value === dataObj.startTimeRange // 设置间隔区域
+            },
+          },
+          boundaryGap: true,
+          axisTick: {
+            show: true,
+            alignWithLabel: false,
+            interval: 0,
+          },
+        },
+        {
+          type: 'category',
+          position: 'bottom',
+          boundaryGap: true,
+          data: [],
+          min: 0,
+          max: 11,
+          axisTick: {
+            show: true,
+            interval(param) {
+              return param % 4 === 0 || !param
+            },
+            length: 110,
+            alignWithLabel: false,
+          },
+        },
+      ],
+      series,
+    }
+    instance.setOption(option)
+  }
+</script>
+<script type="text/javascript">
+  function init() {
+    renderList.forEach(root => {
+      // 根节点
+      const rootDom = document.createElement('echartsDemo');
+      rootDom.id = root.id;
+      rootDom.className = root.class;
+      rootDom.appendChild(document.createElement('h4')).textContent = root.title;
+      document.body.appendChild(rootDom);
+      var children = root.children;
+      for (var i = 0; i < children.length; i++) {
+        var item = children[i];
+        // 子节点
+        const childDom = document.createElement('div');
+        childDom.id = item.id;
+        childDom.className = item.class;
+        rootDom.appendChild(childDom);
+        // 提示
+        if (item.tip) {
+          const tipDom = document.createElement('h4');
+          tipDom.textContent = item.tip;
+          childDom.appendChild(tipDom);
+        }
+        if (typeof item.format === "function") {
+          item.format(item);
+        }
+        if (typeof item.render === "function") {
+          item.render(item);
+        }
+      }
+    });
+  }
+  init()
+</script>
+</html>
