@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html>
 
 <head>
@@ -11,44 +11,96 @@
   body {
     margin: 0;
     padding: 0;
+    font-family: Inter;
+    color: #000000;
+    background: #fff;
+  }
+
+  /* 备注：整体改成报表式流式布局，避免全局 flex 拉伸图表 */
+  #echartsDemo {
+    padding: 20px 16px 32px;
+    box-sizing: border-box;
   }
 
   .container {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    padding: 12px;
-    box-sizing: border-box;
-    gap: 12px;
+    margin-bottom: 36px;
+  }
+
+  .section-title,
+  .section-tip,
+  .chart-title {
+    font-weight: 700;
+  }
+
+  .section-title {
+    margin-bottom: 24px;
+    font-size: 26px;
+  }
+
+  .section-tip {
+    margin-bottom: 12px;
+    font-size: 16px;
+    line-height: 24px;
+  }
+
+  /* 备注：section-tip / chart-title 前面的三角箭头，用 CSS border 画法还原设计稿 */
+  .section-tip::before,
+  .chart-title::before {
+    content: '';
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    background: #4f73f6;
+    clip-path: polygon(0 0,
+        100% 50%,
+        0 100%,
+        22% 50%);
+    margin-right: 6px;
+  }
+
+  .chart-block {
+    margin-top: 8px;
+  }
+
+  .chart-title {
+    margin-bottom: 12px;
+    font-size: 16px;
+    line-height: 20px;
   }
 
   /* table */
   .table {
-    font-size: 14px;
+    font-size: 12px;
     border-collapse: collapse;
     background: #fff;
     overflow: hidden;
+    margin-bottom: 16px;
   }
 
   .table th,
   .table td {
-    border: 1px solid #bdbdbd;
-    padding: 4px 8px;
+    font-family: Inter;
+    border: 1px solid #303133;
+    padding: 9px 12px;
     text-align: center;
-    min-width: 60px;
+    color: #000;
+    font-size: 14px;
+    min-width: 100px;
   }
 
   .table th {
-    background: #e2e2e2;
-    color: #333;
-    font-weight: 600;
-    font-size: 16px;
-    letter-spacing: 1px;
+    background: #F2F3F5;
+    font-weight: 500;
+    letter-spacing: 0;
+  }
+
+  .table td {
+    font-weight: 400;
   }
 
   .description {
-    font-size: 13px;
-    color: #666;
+    font-size: 12px;
+    font-weight: 400;
     font-weight: normal;
   }
 
@@ -56,15 +108,19 @@
     content: '-'
   }
 
+  .title-column {
+    background: #fafbfc;
+    font-weight: 500;
+  }
+
   .warning-cell {
-    background: #f4cccc !important;
+    background: #FDE2E2 !important;
   }
 
 
   /* echart */
   .echarts-container {
-    flex: 1 1 auto;
-    min-height: 0;
+    height: 410px;
     background: #fff;
   }
 
@@ -73,14 +129,10 @@
     margin: 0;
     padding: 0;
   }
-
-  body {
-    font-family: "Microsoft YaHei", "SimSun", "PingFang SC", Arial, sans-serif;
-  }
 </style>
 
 <body>
-<div id="echartsDemo"></div>
+  <div id="echartsDemo"></div>
 </body>
 <script type="text/javascript">
   /**
@@ -94,14 +146,14 @@
 
   const renderList = [
     {
-      title: '（一）三个工作日内发货达成率',
+      title: '(一)三个工作日内发货达成率',
       id: 'container1',
       class: 'container',
       children: [
         {
           type: 'table',
           title: '各区域3个工作日内发货达成率',
-          tip: '订单BP的时间周期：美西时间 '+ dataObj.timeRange +'，已剔除状态为Backorder和Cancelled的订单',
+          tip: '订单BP的时间周期：美西时间 ' + dataObj.timeRange + '，已剔除状态为 Backorder 和 Cancelled 的订单',
           description: '',
           id: 'table1-container',
           class: 'table-1',
@@ -112,7 +164,8 @@
           column: [],
           formatedData: [],
           condition: (data) => {
-            return parseFloat(data) < dataObj.stateAchievementRate
+            const value = parsePercentValue(data)
+            return value !== null && value < dataObj.stateAchievementRate
           },
           format(data) {
             return formatTableData(data)
@@ -124,7 +177,7 @@
         {
           type: 'table',
           title: '美国整体3个工作日内发货达成率',
-          description: '最新BP时间→确认发货时间',
+          description: '最新BP时间 -> 确认发货时间',
           id: 'table2-container',
           class: 'table',
           data: dataObj.truckResults,
@@ -134,7 +187,8 @@
           column: [],
           formatedData: [],
           condition: (data) => {
-            return parseFloat(data) < dataObj.truckAchievementRate
+            const value = parsePercentValue(data)
+            return value !== null && value < dataObj.truckAchievementRate
           },
           format(data) {
             return formatTableData(data)
@@ -145,7 +199,7 @@
         },
         {
           type: 'echart',
-          title: '',
+          title: '美国整体3个工作日内发货达成率',
           id: 'echarts1',
           class: 'echarts-container',
           data: dataObj.truckResults,
@@ -165,14 +219,14 @@
       ]
     },
     {
-      title: '（二）四个工作日内上网达成率',
+      title: '(二)四个工作日内上网达成率',
       id: 'container2',
       class: 'container',
       children: [
         {
           type: 'table',
           title: '各区域4个工作日内上网达成率',
-          tip: '订单BP的时间周期：美西时间 '+ dataObj.timeRange +'，已剔除状态为Backorder和Cancelled的订单',
+          tip: '订单BP的时间周期：美西时间 ' + dataObj.timeRange + '，已剔除状态为 Backorder 和 Cancelled 的订单',
           description: '',
           id: 'table3-container',
           class: 'table-1',
@@ -183,7 +237,8 @@
           column: [],
           formatedData: [],
           condition: (data) => {
-            return parseFloat(data) < dataObj.stateAchievementRate
+            const value = parsePercentValue(data)
+            return value !== null && value < dataObj.stateAchievementRate
           },
           format(data) {
             return formatTableData(data)
@@ -195,7 +250,7 @@
         {
           type: 'table',
           title: '美国整体4个工作日内上网达成率',
-          description: '最新BP时间→上网时间',
+          description: '最新BP时间 -> 上网时间',
           id: 'table4-container',
           class: 'table',
           data: dataObj.truckResults,
@@ -205,7 +260,8 @@
           column: [],
           formatedData: [],
           condition: (data) => {
-            return parseFloat(data) < dataObj.truckAchievementRate
+            const value = parsePercentValue(data)
+            return value !== null && value < dataObj.truckAchievementRate
           },
           format(data) {
             return formatTableData(data)
@@ -216,7 +272,7 @@
         },
         {
           type: 'echart',
-          title: '',
+          title: '美国整体4个工作日内上网达成率',
           id: 'echarts2',
           class: 'echarts-container',
           data: dataObj.truckResults,
@@ -238,231 +294,487 @@
   ]
 </script>
 <script type="text/javascript">
-  // 格式化表格数据
+  function parsePercentValue(value) {
+    if (value === null || value === undefined || value === '' || value === '-') {
+      return null
+    }
+    const parsed = parseFloat(value)
+    return Number.isNaN(parsed) ? null : parsed
+  }
+
+  function getChartBounds(data) {
+    const values = data.series
+      .flatMap((item) => item.data)
+      .filter((value) => typeof value === 'number')
+
+    if (!values.length) {
+      return { min: 0, max: 100, interval: 25 }
+    }
+
+    // 备注：当最小值 >= 10% 时回落到 0%，否则保留真实最小值，并与 100% 组成 5 个刻度
+    const minValue = Math.min(...values)
+    const axisMin = minValue >= 10 ? 0 : minValue
+
+    return {
+      min: axisMin,
+      max: 100,
+      interval: (100 - axisMin) / 4,
+    }
+  }
+
+  function formatAxisPercent(value) {
+    const roundedValue = Math.round(value * 10) / 10
+    return Number.isInteger(roundedValue)
+      ? `${roundedValue}%`
+      : `${roundedValue.toFixed(1)}%`
+  }
+
   function formatTableData(item) {
-    const { data, columnKey, valueKey, listKey } = item;
-    // 格式化column
-    const column = data[0][listKey].map(v => v[columnKey])
+    const { data, columnKey, valueKey, listKey } = item
+    const column = data[0][listKey].map((value) => value[columnKey])
     item.column = column
-    // 格式化rowData
+
     const result = []
-    data.forEach(v => {
-      const rowData = column.map(col => {
-        const found = v[listKey].find(i => i[columnKey] === col)
+    data.forEach((truck) => {
+      const rowData = column.map((col) => {
+        const found = truck[listKey].find((current) => current[columnKey] === col)
         return found ? found[valueKey] : ''
       })
-      rowData.unshift(v.truckName)
+      rowData.unshift(truck.truckName)
       result.push(rowData)
     })
+
     item.formatedData = result
+    return result
   }
-  // 表格渲染
+
   function renderTable(item) {
-    const container = document.getElementById(item.id);
+    const container = document.getElementById(item.id)
     let html = `
       <table id="${item.id}" class="table ${item.class}">
         <thead>
           <tr>
             <th>${item.title}${item.description ? `<br><span class="description">${item.description}</span>` : ''}</th>
-            ${item.column.map(h => `<th>${h}</th>`).join('')}
+            ${item.column.map((header) => `<th>${header}</th>`).join('')}
           </tr>
         </thead>
         <tbody>
-    `;
-    item.formatedData.forEach(row => {
-      html += '<tr>';
+    `
+
+    item.formatedData.forEach((row) => {
+      html += '<tr>'
       row.forEach((data, idx) => {
-        const condition = item.condition(data);
-        html += `<td class="cell ${condition ? 'warning-cell' : ''} ${idx === 0 ? 'title-column' : ''}">${data ? data : '-'}</td>`;
-      });
-      html += '</tr>';
-    });
-    html += '</tbody></table>';
-    const tableDom = document.createElement('div');
-    tableDom.innerHTML = html;
-    container.appendChild(tableDom);
+        const condition = item.condition(data)
+        html += `<td class="cell ${condition ? 'warning-cell' : ''} ${idx === 0 ? 'title-column' : ''}">${data || ''}</td>`
+      })
+      html += '</tr>'
+    })
+
+    html += '</tbody></table>'
+    const tableDom = document.createElement('div')
+    tableDom.innerHTML = html
+    container.appendChild(tableDom)
   }
-</script>
-<script type="text/javascript">
+
+  const chartPalette = ['#6f7bf7', '#ff9f7f', '#51c8f2', '#f6a23c', '#4f86ff']
+  const chartShadowPalette = ['rgba(111, 123, 247, 0.22)', 'rgba(255, 159, 127, 0.22)', 'rgba(81, 200, 242, 0.22)', 'rgba(246, 162, 60, 0.22)', 'rgba(79, 134, 255, 0.22)']
+
   /**
-   * ECharts 渲染
+   * 将接口数据转换成 ECharts 可消费的 xAxis / series
+   * 这里主要影响折线数据排布、灰色分组背景、绿色基线文字、底部 grouplabel
    */
   function formatEchartData(that) {
-    console.log(that.data, 'data')
-    const xAxis = [] // x轴数据
-    const trucks = [] // 卡车名称
-    const series = [] // 卡车数据
+    const xAxis = []
+    const groupLabels = []
+    const groupRanges = []
+    const groupSize = that.data[0]?.stateResultDetails?.length || 0
+    const totalSize = groupSize * that.data.length
+    const series = []
+    const markAreaData = []
+
     that.data.forEach((item, itemIndex) => {
-      trucks.push(item.truckName)
-      const seriesData = {
-        type: 'line',
-        smooth: true,
-        connectNulls: true,
-        data: Array.from({ length: item.stateResultDetails.length * itemIndex}, () => null), // 初始化数据为null
-      }
-      series.push(seriesData)
+      const color = chartPalette[itemIndex % chartPalette.length]
+      groupLabels.push(item.truckName)
+      const offset = itemIndex * groupSize
+
+      // 备注：groupRanges 决定底部 grouplabel 的左右范围、文案和示例色
+      groupRanges.push([offset, offset + groupSize - 1, item.truckName, color])
+
+      // 备注：每条线会先铺一层 null，占住其他 group 的位置，确保曲线只出现在自己的分组里
+      const lineData = Array.from({ length: totalSize }, () => null)
+
       item.stateResultDetails.forEach((detail, detailIndex) => {
         xAxis.push(detail.timeRange)
-        seriesData.data.push(detail[that.valueKey] ? parseFloat(detail[that.valueKey]) : null) // 添加实际数据
+        lineData[offset + detailIndex] = parsePercentValue(detail[that.valueKey])
+      })
+
+      if (itemIndex % 2 === 1 && groupSize) {
+        // 备注：这里控制哪些 group 需要灰底，目前是奇数位 group 着色
+        markAreaData.push([offset, offset + groupSize - 1])
+      }
+
+      series.push({
+        name: item.truckName,
+        type: 'line',
+        // 备注：smooth 控制折线是否圆滑
+        smooth: true,
+        connectNulls: false,
+        showSymbol: true,
+        symbol: 'circle',
+        // 备注：symbolSize 控制每个点的圆圈大小
+        symbolSize: 7,
+        lineStyle: {
+          // 备注：width 控制线宽
+          width: 2,
+          // 备注：显式指定线条颜色,避免被 itemStyle.color(#fff) 覆盖成白色
+          color: color,
+          // 备注：shadowBlur / shadowOffsetY / shadowColor 控制折线阴影
+          shadowBlur: 8,
+          shadowOffsetY: 8,
+          shadowColor: chartShadowPalette[itemIndex % chartShadowPalette.length],
+        },
+        itemStyle: {
+          // 备注：color 控制圆点填充(白色 = 空心效果)
+          color: '#fff',
+          // 备注：borderColor / borderWidth 控制圆点描边,用线条颜色保持视觉一致
+          borderColor: color,
+          borderWidth: 1.5,
+          // 备注：这里的 shadow* 控制圆点阴影
+          shadowBlur: 8,
+          shadowOffsetY: 3,
+          shadowColor: chartShadowPalette[itemIndex % chartShadowPalette.length],
+        },
+        label: {
+          // 备注：label 这一组配置控制折线上方百分比文案
+          show: true,
+          position: 'top',
+          distance: 6,
+          color: 'rgba(0, 0, 0, 0.70)',
+          fontSize: 10,
+          formatter(params) {
+            return typeof params.value === 'number' ? `${params.value}%` : ''
+          },
+        },
+        data: lineData,
       })
     })
-    // 处理series数据start
-    const markLineData = {
-      label: {
-        show: true,
-        position: 'top',
-        offset: [0, -15], // 微调数值位置
-        formatter: '{c}%', // 格式化为百分比
-        color: '#000',
-      },
-      markLine: {
-        lineStyle: { width: 2 }, // 标线大小
-        symbol: 'none', // 去掉线最后面的箭头,
-        data: [
-          {
-            name: '水平线1',
-            yAxis: that.average, // Y 值为给定值的标记线，用户自定义水平标线的值
-            lineStyle: { color: 'green' },
-            symbolRotate: 1, // 起点标记的旋转角度
-            symbolSize: [25, 25], // 起点标记的大小
-          },
-        ],
-      },
+
+    if (series[0]) {
+      // 备注：markLine 负责画绿色达成率基线
+      series[0].markLine = {
+        symbol: 'none',
+        lineStyle: {
+          color: '#86b93b',
+          type: 'dashed',
+          width: 1,
+        },
+        label: {
+          show: false,
+        },
+        data: [{ yAxis: that.average }],
+      }
     }
-    Object.assign(series[0], markLineData) // 将标线数据添加到第一个系列
-    const trucksData = {
+
+    if (markAreaData.length) {
+      series.unshift({
+        name: '__group_band__',
+        type: 'custom',
+        coordinateSystem: 'cartesian2d',
+        silent: true,
+        clip: true,
+        // 备注：z 越小越靠底层，确保灰底压在折线下方
+        z: 0,
+        tooltip: {
+          show: false,
+        },
+        renderItem(params, api) {
+          const startIndex = api.value(0)
+          const endIndex = api.value(1)
+
+          // 备注：stepWidth 是单个 x 轴类目占据的像素宽度
+          const stepWidth = totalSize ? params.coordSys.width / totalSize : 0
+          // 备注：left / width 共同决定灰底从哪里开始、铺多宽
+          const left = params.coordSys.x + (startIndex * stepWidth)
+          const width = (endIndex - startIndex + 1) * stepWidth
+
+          return {
+            type: 'rect',
+            silent: true,
+            shape: {
+              x: left,
+              y: params.coordSys.y,
+              width,
+              height: params.coordSys.height,
+            },
+            style: {
+              // 备注：fill 控制灰色分组背景颜色和透明度
+              fill: 'rgba(244, 246, 249, 0.5)',
+            },
+          }
+        },
+        data: markAreaData,
+      })
+    }
+
+    series.push({
+      name: '__baseline_label__',
       type: 'custom',
-      // @ts-expect-error
+      silent: true,
+      clip: false,
+      tooltip: {
+        show: false,
+      },
       renderItem(params, api) {
-        let valX = api.value(0)
-        let pointA = api.coord([valX, 0])
-        // @ts-expect-error
-        let pointB = api.coord([valX - 1, 0])
+        const point = api.coord([0, api.value(0)])
 
         return {
           type: 'text',
+          silent: true,
           style: {
-            text: api.value(2),
-            x: (pointA[0] + pointB[0]) / 2,
-            y: 750, // 距上方距离,按需调整
-            fill: '#333',
-            fontSize: 14,
-            textAlign: 'center',
+            // 备注：这里额外绘制一层文字，让 96% 贴左侧显示，视觉上接近 y 轴刻度
+            text: `${api.value(0)}%`,
+            // 备注：x 越小越靠左，y 跟随绿色基线高度
+            x: params.coordSys.x - 8,
+            y: point[1],
+            fill: '#8EC655',
+            fontSize: 12,
+            fontWeight: 700,
+            textAlign: 'right',
+            textVerticalAlign: 'middle',
           },
         }
       },
-      data: trucks.map((truck, index) => {
-        return [index * 8 + 4, 0, truck] // 每个卡车名称在x轴上的位置
-      }),
-    }
-    series.push(trucksData)
-    // 处理series数据end
-    that.xAxis = xAxis // 设置x轴数据
-    that.series = series // 设置系列数据
+      data: [[that.average]],
+    })
+
+    series.push({
+      name: '__group_labels__',
+      type: 'custom',
+      silent: true,
+      clip: false,
+      tooltip: {
+        show: false,
+      },
+      renderItem(params, api) {
+        const startIndex = api.value(0)
+        const endIndex = api.value(1)
+        const label = api.value(2)
+        const color = api.value(3)
+        const startPoint = api.coord([startIndex, 0])
+        const endPoint = api.coord([endIndex, 0])
+        const x = (startPoint[0] + endPoint[0]) / 2
+
+        // 备注：74 控制 grouplabel 与 x 轴文字之间的垂直间距
+        const y = params.coordSys.y + params.coordSys.height + 74
+        // 备注：这几个值共同控制示例短线、圆点、文字的水平排布
+        const textWidth = String(label).length * 6.2
+        const lineStartX = x - (textWidth / 2) - 18
+        const lineEndX = lineStartX + 14
+        const circleX = lineStartX + 7
+
+        return {
+          type: 'group',
+          silent: true,
+          children: [
+            {
+              type: 'line',
+              shape: {
+                // 备注：x1/y1/x2/y2 控制示例短线长度和位置
+                x1: lineStartX,
+                y1: y + 5,
+                x2: lineEndX,
+                y2: y + 5,
+              },
+              style: {
+                // 备注：stroke / lineWidth 控制示例短线颜色和粗细
+                stroke: color,
+                lineWidth: 1.5,
+              },
+            },
+            {
+              type: 'circle',
+              shape: {
+                // 备注：cx / cy / r 控制示例圆点位置和大小
+                cx: circleX,
+                cy: y + 5,
+                r: 2.5,
+              },
+              style: {
+                fill: '#fff',
+                stroke: color,
+                lineWidth: 1.5,
+              },
+            },
+            {
+              type: 'text',
+              style: {
+                // 备注：这里控制 grouplabel 文字颜色、字号、对齐方式
+                text: label,
+                x: lineEndX + 6,
+                y,
+                fill: '#000000',
+                fontSize: 12,
+                fontWeight: 500,
+                textAlign: 'left',
+                textVerticalAlign: 'top',
+              },
+            },
+          ],
+        }
+      },
+      data: groupRanges,
+    })
+
+    that.xAxis = xAxis
+    that.series = series
+    that.groupLabels = groupLabels
   }
+
+  /**
+   * 组装 ECharts option 并渲染实例
+   * 这里主要影响坐标轴、tooltip、绘图区留白、纵向虚线和最终挂载的 series
+   */
   function loadEchart(data) {
-    console.log(data.id, 'id')
     const echartRef = document.getElementById(data.id)
     const instance = echarts.init(echartRef, null, {
-      renderer: 'svg',
-      ssr: true
+      renderer: 'canvas',
     })
     echartElements.push(instance)
-    const { title, xAxis, min, max, average, series } = data
-    console.log(series)
+    const { xAxis, series } = data
+    const bounds = getChartBounds(data)
     const option = {
       title: {
-        text: title, // 标题
-        left: '40%',
+        text: '',
+        left: 0,
+        top: 0,
+        textStyle: {
+          color: '#111827',
+          fontSize: 13,
+          fontWeight: 700,
+        },
       },
-      color: ['#3881D7', '#578DCD', '#8EB4E4', '#7AC1E4', '#86C9BE', '#B2D3AD', '#8798CD', '#8977D7', '#AE7EC0'],
+      // 备注：全局折线配色按这个数组顺序取值
+      color: chartPalette,
       grid: {
-        left: 50,
-        right: '4%',
-        bottom: 150,
+        // 备注：left / right / top / bottom 控制图表主体和容器四周的留白
+        left: 42,
+        right: 18,
+        top: 22,
+        bottom: 118,
+      },
+      tooltip: {
+        // 备注：tooltip 控制鼠标悬停时的浮层样式
+        trigger: 'axis',
+        backgroundColor: 'rgba(17, 24, 39, 0.9)',
+        borderWidth: 0,
+        textStyle: {
+          color: '#fff',
+          fontSize: 12,
+        },
+        valueFormatter(value) {
+          return typeof value === 'number' ? `${value}%` : '-'
+        },
       },
       yAxis: {
         type: 'value',
-        interval: 4,
-        min, // y最小值
-        max, // y最大值
+        // 备注：splitNumber + interval + min + max 共同决定 y 轴有几个刻度以及刻度值
+        splitNumber: 4,
+        interval: bounds.interval,
+        min: bounds.min,
+        max: bounds.max,
         splitLine: {
+          // 备注：false 表示不显示 echarts 默认横向辅助线
           show: false,
         },
-
+        axisLine: {
+          show: false,
+        },
+        axisTick: {
+          show: false,
+        },
         axisLabel: {
-          formatter: '{value}%', // 格式化为百分比
+          // 备注：这里控制 y 轴文字颜色、字号和格式
+          color: '#000',
+          fontSize: 10,
+          formatter(value) {
+            return formatAxisPercent(value)
+          },
         },
       },
-      xAxis: [
-        {
-          type: 'category',
-          data: xAxis, // X 轴数据
-          axisLabel: {
-            rotate: 90, // 旋转 X 轴标签 90 度
-            interval: 0, // 每个标签都显示
-            margin: 10, // 调整标签和轴之间的距离
-          },
-          splitLine: {
-            show: true,
-          },
-          splitArea: {
-            show: true,
-            interval: (index, value) => {
-              return value === dataObj.startTimeRange // 设置间隔区域
-            },
-          },
-          boundaryGap: true,
-          axisTick: {
-            show: true,
-            alignWithLabel: false,
-            interval: 0,
+      xAxis: {
+        type: 'category',
+        data: xAxis,
+        boundaryGap: true,
+        axisLine: {
+          // 备注：x 轴底部主轴线颜色
+          lineStyle: {
+            color: '#d9dee8',
           },
         },
-        {
-          type: 'category',
-          position: 'bottom',
-          boundaryGap: true,
-          data: [],
-          min: 0,
-          max: 11,
-          axisTick: {
-            show: true,
-            interval(param) {
-              return param % 4 === 0 || !param
-            },
-            length: 110,
-            alignWithLabel: false,
+        axisLabel: {
+          // 备注：rotate 控制旋转角度，margin 控制标签与轴线距离
+          rotate: 90,
+          interval: 0,
+          margin: 8,
+          color: '#000',
+          fontSize: 10,
+        },
+        axisTick: {
+          show: false,
+        },
+        splitLine: {
+          // 备注：这里控制图内纵向虚线的显示、颜色、线型和粗细
+          show: true,
+          lineStyle: {
+            color: '#d7e1f0',
+            type: 'dashed',
+            width: 1,
           },
         },
-      ],
+        splitArea: {
+          show: false,
+        },
+      },
       series,
     }
     instance.setOption(option)
   }
-</script>
-<script type="text/javascript">
   function init() {
+    const app = document.getElementById('echartsDemo')
     renderList.forEach(root => {
       // 根节点
-      const rootDom = document.createElement('echartsDemo');
+      const rootDom = document.createElement('section');
       rootDom.id = root.id;
       rootDom.className = root.class;
-      rootDom.appendChild(document.createElement('h4')).textContent = root.title;
-      document.body.appendChild(rootDom);
+      const titleDom = document.createElement('h4');
+      titleDom.className = 'section-title';
+      titleDom.textContent = root.title;
+      rootDom.appendChild(titleDom);
+      app.appendChild(rootDom);
       var children = root.children;
       for (var i = 0; i < children.length; i++) {
         var item = children[i];
         // 子节点
         const childDom = document.createElement('div');
-        childDom.id = item.id;
-        childDom.className = item.class;
+        childDom.id = item.type === 'echart' ? `${item.id}-wrap` : item.id;
+        childDom.className = item.type === 'echart' ? 'chart-block' : item.class;
         rootDom.appendChild(childDom);
         // 提示
         if (item.tip) {
           const tipDom = document.createElement('h4');
+          tipDom.className = 'section-tip';
           tipDom.textContent = item.tip;
           childDom.appendChild(tipDom);
+        }
+        if (item.type === 'echart') {
+          const chartTitleDom = document.createElement('div');
+          chartTitleDom.className = 'chart-title';
+          chartTitleDom.textContent = item.title;
+          childDom.appendChild(chartTitleDom);
+          const chartDom = document.createElement('div');
+          chartDom.id = item.id;
+          chartDom.className = item.class;
+          childDom.appendChild(chartDom);
         }
         if (typeof item.format === "function") {
           item.format(item);
@@ -475,4 +787,5 @@
   }
   init()
 </script>
+
 </html>
