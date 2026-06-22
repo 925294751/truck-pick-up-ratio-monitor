@@ -81,7 +81,7 @@
   .table td {
     font-family: Inter;
     border: 1px solid #303133;
-    padding: 9px 12px;
+    padding: 9px 26px;
     text-align: center;
     color: #000;
     font-size: 14px;
@@ -92,6 +92,10 @@
     background: #F2F3F5;
     font-weight: 500;
     letter-spacing: 0;
+  }
+
+  tr th:first-child {
+    min-width: 230px;
   }
 
   .table td {
@@ -106,11 +110,6 @@
 
   .cell:empty::after {
     content: '-'
-  }
-
-  .title-column {
-    background: #fafbfc;
-    font-weight: 500;
   }
 
   .warning-cell {
@@ -199,7 +198,7 @@
         },
         {
           type: 'echart',
-          title: '美国整体3个工作日内发货达成率',
+          title: '美国整体3个工作日内发货达成率趋势图',
           id: 'echarts1',
           class: 'echarts-container',
           data: dataObj.truckResults,
@@ -272,7 +271,7 @@
         },
         {
           type: 'echart',
-          title: '美国整体4个工作日内上网达成率',
+          title: '美国整体4个工作日内上网达成率趋势图',
           id: 'echarts2',
           class: 'echarts-container',
           data: dataObj.truckResults,
