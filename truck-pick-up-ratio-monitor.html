@@ -662,17 +662,18 @@
         bottom: 118,
       },
       tooltip: {
-        // 备注：tooltip 控制鼠标悬停时的浮层样式
-        trigger: 'axis',
-        backgroundColor: 'rgba(17, 24, 39, 0.9)',
-        borderWidth: 0,
-        textStyle: {
-          color: '#fff',
-          fontSize: 12,
-        },
-        valueFormatter(value) {
-          return typeof value === 'number' ? `${value}%` : '-'
-        },
+        show: false,
+        // // 备注：tooltip 控制鼠标悬停时的浮层样式
+        // trigger: 'axis',
+        // backgroundColor: 'rgba(17, 24, 39, 0.9)',
+        // borderWidth: 0,
+        // textStyle: {
+        //   color: '#fff',
+        //   fontSize: 12,
+        // },
+        // valueFormatter(value) {
+        //   return typeof value === 'number' ? `${value}%` : '-'
+        // },
       },
       yAxis: {
         type: 'value',
