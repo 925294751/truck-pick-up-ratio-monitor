@@ -9,16 +9,10 @@
   <style>
     body {
       margin: 0;
-      padding: 0;
+      padding: 20px 16px 32px;
       font-family: Inter;
       color: #000000;
       background: #fff;
-    }
-
-    /* 备注：整体改成报表式流式布局，避免全局 flex 拉伸图表 */
-    #echartsDemo {
-      padding: 20px 16px 32px;
-      box-sizing: border-box;
     }
 
     .container {
@@ -131,7 +125,6 @@
 </head>
 
 <body>
-  <div id="echartsDemo"></div>
   <script type="text/javascript">
     /**
      * 数据声明
@@ -769,17 +762,16 @@
      * 子节点挂载完后再调用 format / render 完成数据准备和图表渲染
      */
     function init() {
-      const app = document.getElementById('echartsDemo')
       renderList.forEach(root => {
         // 根节点
-        const rootDom = document.createElement('section');
+        const rootDom = document.createElement('echartsDemo');
         rootDom.id = root.id;
         rootDom.className = root.class;
         const titleDom = document.createElement('h4');
         titleDom.className = 'section-title';
         titleDom.textContent = root.title;
         rootDom.appendChild(titleDom);
-        app.appendChild(rootDom);
+        document.body.appendChild(rootDom);
         var children = root.children;
         for (var i = 0; i < children.length; i++) {
           var item = children[i];
