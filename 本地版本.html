@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html>
 
 <head>
@@ -461,7 +461,11 @@
   var GROUP_LABEL_TEXT_GAP = 6
   var GROUP_LABEL_CIRCLE_RADIUS = 3
   var GROUP_LABEL_LINE_WIDTH = 2
+  // 备注：grouplabel 整组（图标 + 文字）的水平微调量，正数右移，负数左移
+  var GROUP_LABEL_VISUAL_OFFSET_X = 0
   var GROUP_LABEL_TEXT_VISUAL_OFFSET_Y = 4
+  // 验证用：打开后会在每个 group 中心画一条红色辅助线，用来判断是中心点偏了还是 grouplabel 整块偏了
+  var GROUP_LABEL_DEBUG_CENTER_LINE = false
 
   var chartPalette = ['#8979ff', '#ff928a', '#3cc3df', '#ffae4c', '#537ff1']
   // var chartShadowPalette = ['rgba(111, 123, 247, 0.22)', 'rgba(255, 159, 127, 0.22)', 'rgba(81, 200, 242, 0.22)', 'rgba(246, 162, 60, 0.22)', 'rgba(79, 134, 255, 0.22)']
@@ -712,7 +716,7 @@
         var textWidth = textRect.width
         // 备注：让「示例线段 + 文字间距 + 文本」整体围绕 x 居中
         var labelBlockWidth = GROUP_LABEL_LINE_LENGTH + GROUP_LABEL_TEXT_GAP + textWidth
-        var lineStartX = x - (labelBlockWidth / 2)
+        var lineStartX = x - (labelBlockWidth / 2) + GROUP_LABEL_VISUAL_OFFSET_X
         var lineEndX = lineStartX + GROUP_LABEL_LINE_LENGTH
         var circleX = lineStartX + (GROUP_LABEL_LINE_LENGTH / 2)
         var textStartX = lineEndX + GROUP_LABEL_TEXT_GAP
@@ -723,6 +727,22 @@
           type: 'group',
           silent: true,
           children: [
+            GROUP_LABEL_DEBUG_CENTER_LINE ? {
+              type: 'line',
+              silent: true,
+              shape: {
+                x1: x,
+                y1: params.coordSys.y + params.coordSys.height - 6,
+                x2: x,
+                y2: iconCenterY + 18
+              },
+              style: {
+                stroke: '#ff4d4f',
+                lineWidth: 1,
+                lineDash: [3, 3],
+                opacity: 0.85
+              }
+            } : null,
             {
               type: 'line',
               shape: {
@@ -764,7 +784,9 @@
                 textVerticalAlign: 'top'
               }
             }
-          ]
+          ].filter(function (child) {
+            return !!child
+          })
         }
       },
       data: groupRanges
@@ -863,7 +885,7 @@
           interval: 0,
           margin: 8,
           // 备注：align 控制旋转文字在区间里的水平锚点
-          align: 'center',
+          // align: 'center',
           // 备注：verticalAlign 控制旋转文字在区间里的垂直锚点，middle 对应图1那种居中效果
           verticalAlign: 'middle',
           color: '#000',
