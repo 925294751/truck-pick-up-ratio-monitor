@@ -8,7 +8,7 @@
   <style>
     body {
       margin: 0;
-      padding: 20px 16px 32px;
+      padding: 20px 0 32px 0;
       font-family: Arial, sans-serif;
       color: #000000;
       background: #fff;
@@ -449,6 +449,11 @@
   var EMAIL_CHART_HEIGHT = 410
   var EMAIL_CHART_WIDTH = 1920
   var EMAIL_CHART_FONT_FAMILY = 'Arial, sans-serif'
+  // 修改点1：baseline_label 未与 baseline 保持垂直居中，这组参数专门控制左侧 baseline 文案
+  var BASELINE_LABEL_FONT_SIZE = 13
+  var BASELINE_LABEL_FONT_WEIGHT = 700
+  var BASELINE_LABEL_X_OFFSET = 8
+  var BASELINE_LABEL_VISUAL_OFFSET_Y = 0
   var GROUP_LABEL_FONT_SIZE = 13
   var GROUP_LABEL_FONT_WEIGHT = 400
   var GROUP_LABEL_APPROX_CHAR_WIDTH = 6.2
@@ -456,9 +461,13 @@
   var GROUP_LABEL_TEXT_GAP = 6
   var GROUP_LABEL_CIRCLE_RADIUS = 3
   var GROUP_LABEL_LINE_WIDTH = 2
+  // 备注：grouplabel 整组（图标 + 文字）的水平微调量，正数右移，负数左移
+  var GROUP_LABEL_VISUAL_OFFSET_X = 0
   var GROUP_LABEL_TEXT_VISUAL_OFFSET_Y = 4
+  // 验证用：打开后会在每个 group 中心画一条红色辅助线，用来判断是中心点偏了还是 grouplabel 整块偏了
+  var GROUP_LABEL_DEBUG_CENTER_LINE = false
 
-  var chartPalette = ['#6f7bf7', '#ff9f7f', '#51c8f2', '#f6a23c', '#4f86ff']
+  var chartPalette = ['#8979ff', '#ff928a', '#3cc3df', '#ffae4c', '#537ff1']
   // var chartShadowPalette = ['rgba(111, 123, 247, 0.22)', 'rgba(255, 159, 127, 0.22)', 'rgba(81, 200, 242, 0.22)', 'rgba(246, 162, 60, 0.22)', 'rgba(79, 134, 255, 0.22)']
 
   function getChartTextFont(fontSize, fontWeight, fontFamily) {
@@ -577,7 +586,7 @@
           show: true,
           position: 'top',
           distance: 6,
-          color: 'rgba(0, 0, 0, 0.70)',
+          color: '#000',
           fontSize: 12,
           fontWeight: 400,
           fontFamily: EMAIL_CHART_FONT_FAMILY,
@@ -654,21 +663,29 @@
       },
       renderItem: function (params, api) {
         var point = api.coord([0, api.value(0)])
+        // 修改点1：先测出 baseline_label 的真实文字尺寸，再按文字高度反推顶部坐标
+        var baselineText = api.value(0) + '%'
+        var baselineTextRect = getChartTextRect(baselineText, BASELINE_LABEL_FONT_SIZE, BASELINE_LABEL_FONT_WEIGHT, EMAIL_CHART_FONT_FAMILY)
+        var baselineTextTopY = point[1] - (baselineTextRect.height / 2) + BASELINE_LABEL_VISUAL_OFFSET_Y
         return {
           type: 'text',
           silent: true,
           style: {
             // 备注：这里额外绘制一层文字，让 96% 贴左侧显示，视觉上接近 y 轴刻度
-            text: api.value(0) + '%',
+            text: baselineText,
             // 备注：x 越小越靠左，y 跟随绿色基线高度
-            x: params.coordSys.x - 8,
-            y: point[1],
+            // 修改点1：x 控制 baseline_label 离 y 轴的距离
+            x: params.coordSys.x - BASELINE_LABEL_X_OFFSET,
+            // 修改点1：y 改为文字顶部坐标，避免 middle 基线漂移
+            y: baselineTextTopY,
             fill: '#8EC655',
-            fontSize: 13,
-            fontWeight: 700,
+            font: getChartTextFont(BASELINE_LABEL_FONT_SIZE, BASELINE_LABEL_FONT_WEIGHT, EMAIL_CHART_FONT_FAMILY),
+            fontSize: BASELINE_LABEL_FONT_SIZE,
+            fontWeight: BASELINE_LABEL_FONT_WEIGHT,
             fontFamily: EMAIL_CHART_FONT_FAMILY,
             textAlign: 'right',
-            textVerticalAlign: 'middle'
+            // 修改点1：改成 top，对齐逻辑由 baselineTextTopY 接管
+            textVerticalAlign: 'top'
           }
         }
       },
@@ -699,7 +716,7 @@
         var textWidth = textRect.width
         // 备注：让「示例线段 + 文字间距 + 文本」整体围绕 x 居中
         var labelBlockWidth = GROUP_LABEL_LINE_LENGTH + GROUP_LABEL_TEXT_GAP + textWidth
-        var lineStartX = x - (labelBlockWidth / 2)
+        var lineStartX = x - (labelBlockWidth / 2) + GROUP_LABEL_VISUAL_OFFSET_X
         var lineEndX = lineStartX + GROUP_LABEL_LINE_LENGTH
         var circleX = lineStartX + (GROUP_LABEL_LINE_LENGTH / 2)
         var textStartX = lineEndX + GROUP_LABEL_TEXT_GAP
@@ -710,6 +727,22 @@
           type: 'group',
           silent: true,
           children: [
+            GROUP_LABEL_DEBUG_CENTER_LINE ? {
+              type: 'line',
+              silent: true,
+              shape: {
+                x1: x,
+                y1: params.coordSys.y + params.coordSys.height - 6,
+                x2: x,
+                y2: iconCenterY + 18
+              },
+              style: {
+                stroke: '#ff4d4f',
+                lineWidth: 1,
+                lineDash: [3, 3],
+                opacity: 0.85
+              }
+            } : null,
             {
               type: 'line',
               shape: {
@@ -751,7 +784,9 @@
                 textVerticalAlign: 'top'
               }
             }
-          ]
+          ].filter(function (child) {
+            return !!child
+          })
         }
       },
       data: groupRanges
@@ -771,8 +806,8 @@
     echartRef.style.height = EMAIL_CHART_HEIGHT + 'px'
     echartRef.style.width = EMAIL_CHART_WIDTH + 'px'
     var instance = echarts.init(echartRef, null, {
-      renderer: 'svg',
-      ssr: true
+      // 修改点3：当前是本地浏览器预览，不能开启 ssr；否则 ECharts 不会按常规 DOM 方式渲染到页面
+      renderer: 'svg'
     })
     var xAxis = data.xAxis
     var series = data.series
@@ -798,8 +833,10 @@
       color: chartPalette,
       grid: {
         // 备注：left / right / top / bottom 控制图表主体和容器四周的留白
-        left: 42,
-        right: 18,
+        // left: 42,
+        // right: 18,
+        left: 0,
+        right: 0,
         top: 32,
         bottom: 122
       },
@@ -845,9 +882,14 @@
         },
         axisLabel: {
           // 备注：rotate 控制旋转角度，margin 控制标签与轴线距离
+          // 修改点2：日期需要与区间正中间垂直对齐；旋转 90 度后，verticalAlign 控制这个效果
           rotate: 90,
           interval: 0,
           margin: 8,
+          // 备注：align 控制旋转文字在区间里的水平锚点
+          // align: 'center',
+          // 备注：verticalAlign 控制旋转文字在区间里的垂直锚点，middle 对应图1那种居中效果
+          verticalAlign: 'middle',
           color: '#000',
           fontSize: 11,
           fontFamily: EMAIL_CHART_FONT_FAMILY
