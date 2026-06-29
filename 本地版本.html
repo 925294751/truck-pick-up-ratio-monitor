@@ -453,7 +453,7 @@
   var BASELINE_LABEL_FONT_SIZE = 13
   var BASELINE_LABEL_FONT_WEIGHT = 700
   var BASELINE_LABEL_X_OFFSET = 8
-  var BASELINE_LABEL_VISUAL_OFFSET_Y = 0
+  var BASELINE_LABEL_VISUAL_OFFSET_Y = 4
   var GROUP_LABEL_FONT_SIZE = 13
   var GROUP_LABEL_FONT_WEIGHT = 400
   var GROUP_LABEL_APPROX_CHAR_WIDTH = 6.2
@@ -463,6 +463,8 @@
   var GROUP_LABEL_LINE_WIDTH = 2
   // 备注：grouplabel 整组（图标 + 文字）的水平微调量，正数右移，负数左移
   var GROUP_LABEL_VISUAL_OFFSET_X = 0
+  // 备注：仅最后一个 grouplabel 的水平微调量，正数右移，负数左移
+  var GROUP_LABEL_LAST_VISUAL_OFFSET_X = 46.5
   var GROUP_LABEL_TEXT_VISUAL_OFFSET_Y = 4
   // 验证用：打开后会在每个 group 中心画一条红色辅助线，用来判断是中心点偏了还是 grouplabel 整块偏了
   var GROUP_LABEL_DEBUG_CENTER_LINE = false
@@ -716,7 +718,11 @@
         var textWidth = textRect.width
         // 备注：让「示例线段 + 文字间距 + 文本」整体围绕 x 居中
         var labelBlockWidth = GROUP_LABEL_LINE_LENGTH + GROUP_LABEL_TEXT_GAP + textWidth
-        var lineStartX = x - (labelBlockWidth / 2) + GROUP_LABEL_VISUAL_OFFSET_X
+        var groupVisualOffsetX = GROUP_LABEL_VISUAL_OFFSET_X
+        if (endIndex === totalSize - 1) {
+          groupVisualOffsetX += GROUP_LABEL_LAST_VISUAL_OFFSET_X
+        }
+        var lineStartX = x - (labelBlockWidth / 2) + groupVisualOffsetX
         var lineEndX = lineStartX + GROUP_LABEL_LINE_LENGTH
         var circleX = lineStartX + (GROUP_LABEL_LINE_LENGTH / 2)
         var textStartX = lineEndX + GROUP_LABEL_TEXT_GAP
@@ -833,10 +839,8 @@
       color: chartPalette,
       grid: {
         // 备注：left / right / top / bottom 控制图表主体和容器四周的留白
-        // left: 42,
-        // right: 18,
-        left: 0,
-        right: 0,
+        left: 42,
+        right: 18,
         top: 32,
         bottom: 122
       },
