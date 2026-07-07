@@ -372,8 +372,15 @@
     var found
     var currentList
 
-    for (i = 0; i < data[0][listKey].length; i++) {
-      column.push(data[0][listKey][i][columnKey])
+    // 备注：表头需要汇总所有 truck 的区域/时间列，避免只取第一条时漏掉后续数据里的 CA/NJ
+    for (i = 0; i < data.length; i++) {
+      currentList = data[i][listKey] || []
+      for (j = 0; j < currentList.length; j++) {
+        col = currentList[j][columnKey]
+        if (column.indexOf(col) === -1) {
+          column.push(col)
+        }
+      }
     }
     item.column = column
 
